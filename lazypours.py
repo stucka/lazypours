@@ -11,8 +11,8 @@ import time
 
 maxtaps=45
 full_url = 'http://admin.lazydoggrowler.com/nowpouring.aspx'
-page = PyQuery(open("nowpouring.aspx").read())
-#page = PyQuery(full_url)
+#page = PyQuery(open("nowpouring.aspx").read())
+page = PyQuery(full_url)
 
 class beer(object):
 	def __init__(self):
@@ -53,6 +53,11 @@ def get_beer(tap, beer):
 		beer.links = ""
 	return tap, beer
 
+def updatecheck():
+		
+	return
+
+
 def main():
 	print "Starting program ..."
 	global beers
@@ -60,15 +65,12 @@ def main():
 	x = beer()
 	beer.name="blank"
 	beers.append(x)			# Let's just dummy up something for tap 0
+							# to keep tap number and index aligned
 	print "Pulling in list of beers ..."
 	for tap in range(1,(maxtaps)):
 		x = beer()
 		get_beer(tap, x)
-		beers.append(x)
-
-#	for tap in range(1, (maxtaps)):
-#		print beers[tap].fullname
-	
+		beers.append(x)	
 	return
 
 
