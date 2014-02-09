@@ -1,11 +1,10 @@
-#!/python27/python
+#!/usr/bin/python
 import requests
 import re
 from pyquery import PyQuery
 import time
 
 # To do:
-# -- Modularize retrieval of tap info
 # -- Split up brewery and brew with regex
 # -- Begin looking for changes
 # -- Tweet using code lifted from pacer-rss
@@ -18,12 +17,21 @@ page = PyQuery(open("nowpouring.aspx").read())
 
 class beer(object):
 	def __init__(self):
-		self.name = ""
+		self.fullname = ""
 		self.hometown = ""
 		self.abv = 0.0
 		self.style = ""
 		self.description = ""
 		self.link = ""
+
+def get_beer(tap, beer):
+	beer.fullname = page("td").eq((10*tap)-5).text().strip()
+	beer.hometown = page("td").eq((10*tap)-4).text().strip()
+	beer.abv = page("td").eq((10*tap)-3).text().strip()
+	beer.style = page("td").eq((10*tap)-2).text().strip()
+	beer.description = page("td").eq((10*tap)-1).text().strip()
+	beer.links = page("td").eq((10*tap)+2).html()
+	return tap, beer
 
 def main():
 	print "Starting program ..."
@@ -31,19 +39,15 @@ def main():
 	beers = list()
 	x = beer()
 	beer.name="blank"
-	beers.append(x)
+	beers.append(x)			# Let's just dummy up something for tap 0
+	print "Pulling in list of beers ..."
 	for tap in range(1,(maxtaps)):
 		x = beer()
-		x.name = page("td").eq((10*tap)-5).text().strip()
-		x.hometown = page("td").eq((10*tap)-4).text().strip()
-		x.abv = page("td").eq((10*tap)-3).text().strip()
-		x.style = page("td").eq((10*tap)-2).text().strip()
-		x.description = page("td").eq((10*tap)-1).text().strip()
-		x.links = page("td").eq((10*tap)+2).html()
+		get_beer(tap, x)
 		beers.append(x)
 
 	for tap in range(1, (maxtaps)):
-		print beers[tap].name
+		print beers[tap].fullname
 	
 	return
 
