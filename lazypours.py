@@ -14,6 +14,9 @@ full_url = 'http://admin.lazydoggrowler.com/nowpouring.aspx'
 #page = PyQuery(open("nowpouring.aspx").read())
 page = PyQuery(full_url)
 
+houropen=11
+hourclose=21
+
 class beer(object):
 	def __init__(self):
 		self.fullname = ""
@@ -54,7 +57,18 @@ def get_beer(tap, beer):
 	return tap, beer
 
 def updatecheck():
-		
+	page = PyQuery(full_url)
+	for tap in range(1,(maxtaps)):
+		x = beer()
+		get_beer(tap, x)
+		if x.fullname == beers[tap].fullname:
+#			print "x.fullname: " + x.fullname
+#			print "beers[tap]: " + beers[tap].fullname + str(tap)
+			pass			
+		else:
+			print "Whoohoo! New beer on tap " + str(tap) + x.fullname
+			beers[tap] = x
+			
 	return
 
 
@@ -63,7 +77,7 @@ def main():
 	global beers
 	beers = list()
 	x = beer()
-	beer.name="blank"
+	x.fullname="blank"
 	beers.append(x)			# Let's just dummy up something for tap 0
 							# to keep tap number and index aligned
 	print "Pulling in list of beers ..."
@@ -71,6 +85,16 @@ def main():
 		x = beer()
 		get_beer(tap, x)
 		beers.append(x)	
+	while "Coors" < "beer":
+		hourcurrent=time.strftime("%H",time.localtime())
+		timestamp = time.strftime("%a %H:%M", time.localtime())
+		if ((hourcurrent >= hourclose) or (hourcurrent < houropen)):
+			print timestamp + " Store's closed. Napping an hour."
+			time.sleep(3600)		# nap an hour, check again.
+		else:
+			print timestamp + " Waiting 10 minutes to check again."
+			time.sleep(600)			# 10 minutes between checks
+			updatecheck()
 	return
 
 
