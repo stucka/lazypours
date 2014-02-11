@@ -5,7 +5,7 @@ from pyquery import PyQuery
 import time
 
 # To do:
-# -- Begin looking for changes
+# -- Test code that looks for changes
 # -- Tweet using code lifted from pacer-rss
 
 
@@ -100,9 +100,3 @@ def main():
 
 if __name__ == '__main__':
 	main()
-
-
-
-
-
-
