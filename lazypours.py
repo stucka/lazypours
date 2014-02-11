@@ -3,6 +3,8 @@ import requests
 import re
 from pyquery import PyQuery
 import time
+from twitter import *
+import argparse
 
 # To do:
 # -- Test code that looks for changes
@@ -14,8 +16,10 @@ full_url = 'http://admin.lazydoggrowler.com/nowpouring.aspx'
 #page = PyQuery(open("nowpouring.aspx").read())
 page = PyQuery(full_url)
 
-houropen=11
-hourclose=21
+houropen=11			# Store opens no earlier than 11 a.m.
+hourclose=21		# Store closes no later than 9 p.m.
+sleeptime=600		# 600 seconds between checks
+
 
 class beer(object):
 	def __init__(self):
@@ -71,9 +75,33 @@ def updatecheck():
 			
 	return
 
+def make_notifier(creds, twitter=False):
+    """Make a notifier function with access to credentials, etc."""
+    def notify(entry):
+        if twitter:
+            send_tweet(entry, creds['oauth_token'], creds['oauth_secret'],
+                       creds['consumer_key'], creds['consumer_secret'] )
+    return notify
+
+
 
 def main():
 	print "Starting program ..."
+	# Get command-line arguments.
+	parser = argparse.ArgumentParser()
+	parser.add_argument("--twitter", action='store_true')
+	for arg in ["--e-from", "--e-pass", "--e-to",
+			"--t-oauth-token", "--t-oauth-secret",
+			"--t-consumer-key", "--t-consumer-secret"]:
+		parser.add_argument(arg, action='store', default="")
+	args = parser.parse_args()
+	notifier = make_notifier(twitter=args.twitter, creds = {
+		'oauth_token': args.t_oauth_token,
+		'oauth_secret': args.t_oauth_secret,
+		'consumer_key': args.t_consumer_key,
+		'consumer_secret': args.t_consumer_secret
+	})
+
 	global beers
 	beers = list()
 	x = beer()
@@ -89,11 +117,11 @@ def main():
 		hourcurrent=time.strftime("%H",time.localtime())
 		timestamp = time.strftime("%a %H:%M", time.localtime())
 		if ((hourcurrent >= hourclose) or (hourcurrent < houropen)):
-			print timestamp + " Store's closed. Napping an hour."
-			time.sleep(3600)		# nap an hour, check again.
+			print timestamp + " Store's closed. Napping."
+			time.sleep(sleeptime)		# nap an hour, check again.
 		else:
-			print timestamp + " Waiting 10 minutes to launch a check."
-			time.sleep(600)			# 10 minutes between checks
+			print timestamp + " Napping before launching a new check."
+			time.sleep(sleeptime)			# 10 minutes between checks
 			updatecheck()
 	return
 
