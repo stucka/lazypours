@@ -116,7 +116,8 @@ def main():
 	while "Coors" < "beer":
 		hourcurrent=time.strftime("%H",time.localtime())
 		timestamp = time.strftime("%a %H:%M", time.localtime())
-		if ((hourcurrent >= hourclose) or (hourcurrent < houropen)):
+		if ((int(hourcurrent) >= int(hourclose)) or (int(hourcurrent) < int(houropen))):
+		#if 1 == 2:
 			print timestamp + " Store's closed. Napping."
 			time.sleep(sleeptime)		# nap an hour, check again.
 		else:
