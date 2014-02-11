@@ -92,7 +92,7 @@ def main():
 			print timestamp + " Store's closed. Napping an hour."
 			time.sleep(3600)		# nap an hour, check again.
 		else:
-			print timestamp + " Waiting 10 minutes to check again."
+			print timestamp + " Waiting 10 minutes to launch a check."
 			time.sleep(600)			# 10 minutes between checks
 			updatecheck()
 	return
