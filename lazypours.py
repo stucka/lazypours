@@ -7,6 +7,7 @@ from twitter import *
 import argparse
 
 # To do:
+# -- Patch around missing beers that lead to tap number / position in file mismatches
 # -- Test code that looks for changes
 # -- Tweet using code lifted from pacer-rss
 
@@ -14,12 +15,18 @@ import argparse
 maxtaps=45
 full_url = 'http://admin.lazydoggrowler.com/nowpouring.aspx'
 #page = PyQuery(open("nowpouring.aspx").read())
-page = PyQuery(full_url)
 
 houropen=11			# Store opens no earlier than 11 a.m.
 hourclose=21		# Store closes no later than 9 p.m.
-sleeptime=600		# 600 seconds between checks
+sleeptime=15*60		# Wait some minutes between checks
 
+testmode = "n"
+#testmode = "y"
+if testmode == "y":
+	houropen=0
+	hourclose=24
+	sleeptime=10
+	full_url = "http://localhost:8383/lazypours/nowpouring.aspx"
 
 class beer(object):
 	def __init__(self):
@@ -32,12 +39,12 @@ class beer(object):
 		self.description = ""
 		self.link = ""
 
-def get_beer(tap, beer):
-	beer.fullname = page("td").eq((10*tap)-5).text().strip()
-	beer.hometown = page("td").eq((10*tap)-4).text().strip()
-	beer.abv = page("td").eq((10*tap)-3).text().strip()
-	beer.style = page("td").eq((10*tap)-2).text().strip()
-	beer.description = page("td").eq((10*tap)-1).text().strip()
+def get_beer(tap, beer, pqhandle):
+	beer.fullname = pqhandle("td").eq((10*tap)-5).text().strip()
+	beer.hometown = pqhandle("td").eq((10*tap)-4).text().strip()
+	beer.abv = pqhandle("td").eq((10*tap)-3).text().strip()
+	beer.style = pqhandle("td").eq((10*tap)-2).text().strip()
+	beer.description = pqhandle("td").eq((10*tap)-1).text().strip()
 	x = beer.fullname.find(':')
 	beer.brewery = beer.fullname[0:x-1].strip()
 	beer.label = beer.fullname[x+1:].strip()
@@ -52,19 +59,23 @@ def get_beer(tap, beer):
 			# href="http://www.ratebeer.com/beer/abita-andygator/3/" target="_blank"  ....
 			# So the first pair of quotes IDs the beer reviewing organization, second gets us the URL.
 			# Python indexes start at 0. So the second pair is indices 2 and 3.
-	rawlinks = page("td").eq((10*tap)+2).html().strip()
+	rawlinks = pqhandle("td").eq((10*tap)+2).html().strip()
 	starts = [match.start() for match in re.finditer(re.escape('"'), rawlinks)]
 	if len(starts) >= 4:
 		beer.links = rawlinks[starts[2]+1:starts[3]]
 	else:
 		beer.links = ""
-	return tap, beer
+	return tap, beer, pqhandle
 
 def updatecheck():
 	page = PyQuery(full_url)
 	for tap in range(1,(maxtaps)):
 		x = beer()
-		get_beer(tap, x)
+		get_beer(tap, x, page)
+		# if tap == 10:
+			# print "x.fullname: \t" + x.fullname
+			# print "beers[tap]: \t" + beers[tap].fullname
+			# print "PyQuery ..: \t" + PyQuery("http://stucka.dyndns.org:8383/lazypours/nowpouring.aspx")("td").eq((10*10)-5).text().strip()
 		if x.fullname == beers[tap].fullname:
 #			print "x.fullname: " + x.fullname
 #			print "beers[tap]: " + beers[tap].fullname + str(tap)
@@ -109,9 +120,10 @@ def main():
 	beers.append(x)			# Let's just dummy up something for tap 0
 							# to keep tap number and index aligned
 	print "Pulling in list of beers ..."
+	page = PyQuery(full_url)
 	for tap in range(1,(maxtaps)):
 		x = beer()
-		get_beer(tap, x)
+		get_beer(tap, x, page)
 		beers.append(x)	
 	while "Coors" < "beer":
 		hourcurrent=time.strftime("%H",time.localtime())
@@ -119,10 +131,10 @@ def main():
 		if ((int(hourcurrent) >= int(hourclose)) or (int(hourcurrent) < int(houropen))):
 		#if 1 == 2:
 			print timestamp + " Store's closed. Napping."
-			time.sleep(sleeptime)		# nap an hour, check again.
+			time.sleep(sleeptime)		# Wait a while for store to open
 		else:
 			print timestamp + " Napping before launching a new check."
-			time.sleep(sleeptime)			# 10 minutes between checks
+			time.sleep(sleeptime)			# Wait a while for another round of checks
 			updatecheck()
 	return
 
