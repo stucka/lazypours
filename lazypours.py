@@ -30,6 +30,7 @@ if testmode == "y":
 
 class beer(object):
 	def __init__(self):
+		self.tap = 12345
 		self.fullname = ""
 		self.brewery = ""
 		self.label = ""
@@ -62,7 +63,7 @@ def get_beer(slot, beer, pqhandle):
 			# Python indexes start at 0. So the second pair is indices 2 and 3.
 	rawlinks = pqhandle("td").eq((10*slot)+2).html().strip()
 	starts = [match.start() for match in re.finditer(re.escape('"'), rawlinks)]
-	print "Tap = " + str(beer.tap) + " : " + beer.label
+#	print "Tap = " + str(beer.tap) + " : " + beer.label
 	if len(starts) >= 4:
 		beer.links = rawlinks[starts[2]+1:starts[3]]
 	else:
@@ -74,6 +75,7 @@ def updatecheck():
 	maxslots = (((page("td").length)-6)/10)+1
 	updatelist = list()				# Zero out list.
 	x = beer()
+	activetaps = 0
 	for randomword in range(0,maxtaps+1):
 		updatelist.append(x)		# Dummy up a list of empty taps. Keep
 									#empty in 0 to keep tap number
@@ -82,16 +84,24 @@ def updatecheck():
 		x = beer()
 		get_beer(slot, x, page)
 		updatelist[x.tap]=x
-	
+		activetaps = activetaps + 1
+	for tap in range(1,maxtaps):
+		if updatelist[tap].fullname != beers[tap].fullname:
+			if length(updatelist[tap].fullname) <3:
+				beers[tap]=updatelist[tap]
+				print "Tap " + str(tap) + " has gone dry."
+			else:
+				beers[tap]=updatelist[tap]
+				print "Whoohoo! New beer " + beers[tap].fullname + " on tap " + str(tap)
+	print str(activetaps) + " active taps found."
 
-
-		if x.fullname == beers[tap].fullname:
+#		if x.fullname == beers[tap].fullname:
 #			print "x.fullname: " + x.fullname
 #			print "beers[tap]: " + beers[tap].fullname + str(tap)
-			pass			
-		else:
-			print "Whoohoo! New beer on tap " + str(tap) + x.fullname
-			beers[tap] = x
+#			pass			
+#		else:
+#			print "Whoohoo! New beer on tap " + str(tap) + x.fullname
+#			beers[tap] = x
 			
 	return
 
@@ -125,6 +135,7 @@ def main():
 	global beers
 	beers = list()
 	x = beer()
+	activetaps = 0
 	for randomword in range(0,maxtaps+1):
 		beers.append(x)		# Dummy up a list of empty taps. Keep empty in 0
 							#to keep tap number and index aligned.
@@ -136,6 +147,8 @@ def main():
 		get_beer(slot, x, page)
 #HEY HEY HEY
 		beers[x.tap]=x
+		activetaps = activetaps + 1
+	print str(activetaps) + " active taps found."
 	while "Coors" < "beer":
 		hourcurrent=time.strftime("%H",time.localtime())
 		timestamp = time.strftime("%a %H:%M", time.localtime())
