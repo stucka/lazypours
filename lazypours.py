@@ -40,7 +40,7 @@ class beer(object):
 		self.link = ""
 
 def get_beer(slot, beer, pqhandle):
-	beer.tap = pqhandle("td").eq((10*slot)-6).text().strip()[:-1].strip()
+	beer.tap = int(pqhandle("td").eq((10*slot)-6).text().strip()[:-1].strip())
 	beer.fullname = pqhandle("td").eq((10*slot)-5).text().strip()
 	beer.hometown = pqhandle("td").eq((10*slot)-4).text().strip()
 	beer.abv = pqhandle("td").eq((10*slot)-3).text().strip()
@@ -62,7 +62,7 @@ def get_beer(slot, beer, pqhandle):
 			# Python indexes start at 0. So the second pair is indices 2 and 3.
 	rawlinks = pqhandle("td").eq((10*slot)+2).html().strip()
 	starts = [match.start() for match in re.finditer(re.escape('"'), rawlinks)]
-	print "Tap = " + beer.tap + " : " + beer.label
+	print "Tap = " + str(beer.tap) + " : " + beer.label
 	if len(starts) >= 4:
 		beer.links = rawlinks[starts[2]+1:starts[3]]
 	else:
@@ -71,17 +71,20 @@ def get_beer(slot, beer, pqhandle):
 
 def updatecheck():
 	page = PyQuery(full_url)
-	maxslots = (((page("td").length)-6)/10)
+	maxslots = (((page("td").length)-6)/10)+1
 	updatelist = list()				# Zero out list.
 	x = beer()
 	for randomword in range(0,maxtaps+1):
 		updatelist.append(x)		# Dummy up a list of empty taps. Keep
 									#empty in 0 to keep tap number
 									# and index aligned.
-	for slot in range(1,(maxslots+1)):
+	for slot in range(1,maxslots):
 		x = beer()
 		get_beer(slot, x, page)
-###HEY HEY HEY
+		updatelist[x.tap]=x
+	
+
+
 		if x.fullname == beers[tap].fullname:
 #			print "x.fullname: " + x.fullname
 #			print "beers[tap]: " + beers[tap].fullname + str(tap)
@@ -122,17 +125,17 @@ def main():
 	global beers
 	beers = list()
 	x = beer()
-	for randomword in range(0,maxtaps):
+	for randomword in range(0,maxtaps+1):
 		beers.append(x)		# Dummy up a list of empty taps. Keep empty in 0
 							#to keep tap number and index aligned.
 	print "Pulling in list of beers ..."
 	page = PyQuery(full_url)
-	maxslots = (((page("td").length)-6)/10)
-	for slot in range(1,(maxslots+1)):
+	maxslots = (((page("td").length)-6)/10)+1
+	for slot in range(1,maxslots):
 		x = beer()
 		get_beer(slot, x, page)
 #HEY HEY HEY
-		beers.append(x)	
+		beers[x.tap]=x
 	while "Coors" < "beer":
 		hourcurrent=time.strftime("%H",time.localtime())
 		timestamp = time.strftime("%a %H:%M", time.localtime())
