@@ -14,19 +14,13 @@ import argparse
 
 maxtaps=45
 full_url = 'http://admin.lazydoggrowler.com/nowpouring.aspx'
-#page = PyQuery(open("nowpouring.aspx").read())
 
 houropen=11			# Store opens no earlier than 11 a.m.
 hourclose=21		# Store closes no later than 9 p.m.
 sleeptime=15*60		# Wait some minutes between checks
 
-testmode = "n"
+#testmode = "n"
 #testmode = "y"
-if testmode == "y":
-	houropen=0
-	hourclose=24
-	sleeptime=10
-	full_url = "http://localhost:8383/lazypours/nowpouring.aspx"
 
 class beer(object):
 	def __init__(self):
@@ -87,7 +81,7 @@ def updatecheck():
 		activetaps = activetaps + 1
 	for tap in range(1,maxtaps):
 		if updatelist[tap].fullname != beers[tap].fullname:
-			if length(updatelist[tap].fullname) <3:
+			if updatelist[tap].fullname.length <3:
 				beers[tap]=updatelist[tap]
 				print "Tap " + str(tap) + " has gone dry."
 			else:
@@ -145,7 +139,6 @@ def main():
 	for slot in range(1,maxslots):
 		x = beer()
 		get_beer(slot, x, page)
-#HEY HEY HEY
 		beers[x.tap]=x
 		activetaps = activetaps + 1
 	print str(activetaps) + " active taps found."
