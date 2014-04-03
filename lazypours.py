@@ -81,7 +81,7 @@ def updatecheck():
 		activetaps = activetaps + 1
 	for tap in range(1,maxtaps):
 		if updatelist[tap].fullname != beers[tap].fullname:
-			if updatelist[tap].fullname.length <3:
+			if len(updatelist[tap].fullname) <3:
 				beers[tap]=updatelist[tap]
 				print "Tap " + str(tap) + " has gone dry."
 			else:
