@@ -87,6 +87,19 @@ def updatecheck():
 			else:
 				beers[tap]=updatelist[tap]
 				print "Whoohoo! New beer " + beers[tap].fullname + " on tap " + str(tap)
+				mybeer=beers[tap]
+				if len(mybeer.links)>1:
+					tweetlen=116
+				else:
+					tweetlen=136
+				intro="Pouring " + mybeer.brewery + "'s " + mybeer.label + " on tap " + mybeer.tap + ": " + mybeer.description
+				if len(intro) > tweetlen:
+					print "Well, that's too long to tweet right. BUG. HEY!"
+				if len(mybeer.links)>0:
+					intro+=" " + mybeer.links
+				print intro
+
+
 	print str(activetaps) + " active taps found."
 
 #		if x.fullname == beers[tap].fullname:
